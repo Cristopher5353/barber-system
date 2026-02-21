@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Venta</title>
+    <th:block th:insert="~{fragments/fragmentcss}"></th:block>
+</head>
+
+<body id="body">
+    <!---------- Header ---------->
+    <header th:insert="~{fragments/header :: header}"></header>
+    <!---------- End Header ----------->
+
+    <!---------- Sidebar ----------->
+    <aside th:insert="~{fragments/aside :: aside}"></aside>
+    <!---------- End Sidebar ----------->
+
+    <!---------- Main ----------->
+    <main id="main" class="main">
+        <div class="container mt-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-body bg-white">
+
+                    <h3 class="mb-4 mt-4">Registrar Venta</h3>
+
+                    <!-- Cliente (opcional) -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Cliente (opcional)</label>
+                        <select id="clientSelect" class="form-select">
+                            <option value="">Sin cliente</option>
+                        </select>
+                    </div>
+
+                    <!-- Items -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Agregar servicio / producto</label>
+                        <select id="itemSelect" class="form-select">
+                            <option value="">Seleccione un item</option>
+                        </select>
+
+                        <div class="d-flex mt-2">
+                            <input id="quantityInput" type="number" class="form-control me-2" min="1" value="1">
+                            <button id="addItemBtn" class="btn btn-primary">
+                                Agregar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tabla carrito -->
+                    <div class="table-responsive mb-3">
+                        <table class="table table-sm align-middle">
+                            <thead class="table-light">
+                            <tr>
+                                <th>Item</th>
+                                <th>Precio</th>
+                                <th>Cant.</th>
+                                <th>Subtotal</th>
+                                <th></th>
+                            </tr>
+                            </thead>
+                            <tbody id="cartTable"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- Total -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">Total</h5>
+                        <h4 class="mb-0">S/ <span id="totalLabel">0.00</span></h4>
+                    </div>
+
+                    <!-- Método pago -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Método de pago</label>
+                        <select id="paymentMethod" class="form-select">
+                            <option value="CASH">Efectivo</option>
+                            <option value="CARD">Tarjeta</option>
+                            <option value="YAPE">Yape</option>
+                            <option value="PLIN">Plin</option>
+                        </select>
+                    </div>
+
+                    <button id="submitSaleBtn" class="btn btn-success w-100">
+                        Registrar Venta
+                    </button>
+
+                </div>
+            </div>
+        </div>
+    </main>
+    <!---------- End Main ----------->
+
+    <!-------- Footer -------->
+    <footer th:insert="~{fragments/footer :: footer}"></footer>
+    <!-------- End Footer -------->
+
+    <!-- Vendor JS Files -->
+    <th:block th:insert="~{fragments/fragmentjs}"></th:block>
+    <!-- End Vendor JS Files -->
+
+    <script>
+        let items = [];
+        let clients = [];
+        let cart = [];
+
+        async function loadInitialData() {
+          items = await fetch('/api/items').then(r => r.json());
+          clients = await fetch('/api/clients').then(r => r.json());
+
+          console.log(items);
+          console.log(clients);
+
+          const itemSelect = document.getElementById('itemSelect');
+          const clientSelect = document.getElementById('clientSelect');
+
+          items.forEach(i => {
+            const opt = document.createElement('option');
+            opt.value = i.id;
+            opt.textContent = `${i.name} - S/ ${i.price}`;
+            itemSelect.appendChild(opt);
+          });
+
+          clients.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = c.name;
+            clientSelect.appendChild(opt);
+          });
+        }
+
+        document.getElementById('addItemBtn').addEventListener('click', () => {
+          const itemId = document.getElementById('itemSelect').value;
+          const qty = parseInt(document.getElementById('quantityInput').value);
+
+          if (!itemId || qty <= 0) return;
+
+          const item = items.find(i => i.id == itemId);
+
+          const existing = cart.find(c => c.itemId == itemId);
+          if (existing) {
+            existing.quantity += qty;
+          } else {
+            cart.push({
+              itemId: item.id,
+              name: item.name,
+              unitPrice: item.price,
+              quantity: qty
+            });
+          }
+
+          renderCart();
+        });
+
+        function renderCart() {
+          const tbody = document.getElementById('cartTable');
+          tbody.innerHTML = '';
+
+          let total = 0;
+
+          cart.forEach((c, index) => {
+            const subtotal = c.unitPrice * c.quantity;
+            total += subtotal;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${c.name}</td>
+              <td>S/ ${c.unitPrice.toFixed(2)}</td>
+              <td>${c.quantity}</td>
+              <td>S/ ${subtotal.toFixed(2)}</td>
+              <td>
+                <button class="btn btn-sm btn-danger" onclick="removeItem(${index})">
+                  X
+                </button>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+
+          document.getElementById('totalLabel').textContent = total.toFixed(2);
+        }
+
+        function removeItem(index) {
+          cart.splice(index, 1);
+          renderCart();
+        }
+
+        document.getElementById('submitSaleBtn').addEventListener('click', async () => {
+          if (cart.length === 0) {
+            alert('Agrega al menos un item');
+            return;
+          }
+
+          const clientId = document.getElementById('clientSelect').value || null;
+          const paymentMethod = document.getElementById('paymentMethod').value;
+
+          const payload = {
+            clientId: clientId,
+            paymentMethod: paymentMethod,
+            items: cart.map(c => ({
+              itemId: c.itemId,
+              quantity: c.quantity
+            }))
+          };
+
+          const res = await fetch('/dashboard/ventas/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          if (res.ok) {
+            alert('Venta registrada');
+            cart = [];
+            renderCart();
+          } else {
+            alert('Error al registrar venta');
+          }
+        });
+
+        loadInitialData();
+    </script>
+</body>
+
+</html>

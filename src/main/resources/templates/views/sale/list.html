@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ventas</title>
+    <th:block th:insert="~{fragments/fragmentcss}"></th:block>
+</head>
+
+<body id="body">
+<!---------- Header ----------->
+<header th:insert="~{fragments/header :: header}"></header>
+<!---------- End Header ----------->
+
+<!---------- Sidebar ----------->
+<aside th:insert="~{fragments/aside :: aside}"></aside>
+<!---------- End Sidebar ----------->
+
+<main id="main" class="main">
+    <div class="pagetitle">
+        <h1>Ventas</h1>
+        <nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a th:href="@{/ventas/listado}">Home / Mantenimientos / Ventas</a>
+                </li>
+            </ol>
+        </nav>
+        <section class="section">
+            <div class="mb-2 p-2">
+                <div class="card-bod">
+                    <a class="btn btn-primary" th:href="@{/ventas/crear}" th:text="'Agregar +'">
+                    </a>
+                </div>
+            </div>
+            <form action="/ventas/listado" method="get" class="row mb-2 p-2">
+                <div class="col-12 col-md-3 mb-2">
+                    <input type="date" id="startDate" name="startDate" class="form-control form-control-sm"
+                           placeholder="Fecha Inicio" th:value="${param.startDate}" />
+                </div>
+                <div class="col-12 col-md-3 mb-2">
+                    <input type="date" id="endDate" name="endDate" class="form-control form-control-sm"
+                           placeholder="Fecha Fin" th:value="${param.endDate}" />
+                </div>
+                <div class="col-12 col-md-2 d-flex align-items-end mb-2">
+                    <button type="submit" name="action" value="filter" class="btn btn-sm btn-success w-100">Filtrar
+                        +</button>
+                </div>
+            </form>
+            <div class="card mb-4 p-3">
+                <div th:if="${errorMessage}" class="alert alert-warning" role="alert">
+                    <p th:text="${errorMessage}"></p>
+                </div>
+                <div class="card-bod">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead class="thead-dark">
+                            <tr>
+                                <th scope="col">ID</th>
+                                <th scope="col">FECHA EMISIÓN</th>
+                                <th scope="col">CLIENTE</th>
+                                <th scope="col">TOTAL</th>
+                                <th scope="col" colspan="1">ACCIONES</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="sale : ${sales}">
+                                <th th:text="${sale.id}"></th>
+                                <td th:text="${sale.createdAt}"></td>
+                                <td th:text="${sale.customer}"></td>
+                                <td th:text="${sale.total}"></td>
+                                <td>
+                                    <a class="btn btn-warning btn-sm"
+                                       th:href="@{/ventas/show-pdf/} + ${sale.id}" target="_blank" th:text="'Ver'">
+                                    </a>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="row">
+                        <div col-md-2></div>
+                        <div col-md-8>
+                            <nav arial-label="Pagination">
+                                <ul class="pagination justify-content-center">
+                                    <li class="page-item" th:each="item : ${page.pages}"
+                                        th:class="${item.current? 'page-item active' :'page-item'}">
+                                            <span class="page-link" th:if="${item.current}"
+                                                  th:text="${item.number}"></span>
+                                        <a class="page-link" th:if="${not item.current}"
+                                           th:href="@{${page.url}(page=${item.number-1}, name=${param.name}, status=${param.status})}"
+                                           th:text="${item.number}"></a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                        <div col-md-2></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<!-------- Footer -------->
+<footer th:insert="~{fragments/footer :: footer}"></footer>
+<!-------- End Footer -------->
+
+<!-- Vendor JS Files -->
+<th:block th:insert="~{fragments/fragmentjs}"></th:block>
+<!-- End Vendor JS Files -->
+</body>
+
+</html>

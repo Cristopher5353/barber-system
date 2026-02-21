@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Seleccionar Negocio</title>
+    <link
+            th:href="@{/assets/vendor/bootstrap/css/bootstrap.min.css}"
+            rel="stylesheet"
+    />
+    <link th:href="@{/assets/css/formlogin.css}" rel="stylesheet" />
+</head>
+
+<body>
+<div class="container">
+    <div class="row vh-100 justify-content-center align-items-center">
+        <div class="col-12 col-md-2 col-lg-4"></div>
+
+        <div class="col-12 col-md-8 col-lg-4" id="login">
+            <h1 class="text-center mb-4">Seleccionar negocio</h1>
+
+            <p class="text-center text-muted mb-4">
+                Elige el negocio con el que deseas trabajar
+            </p>
+
+            <form th:action="@{select-business}" method="post">
+                <div class="mb-3">
+                    <label class="form-label">Negocio</label>
+
+                    <select class="form-select" name="businessId" required>
+                        <option value="" disabled selected>
+                            -- Selecciona un negocio --
+                        </option>
+                        <option
+                                th:each="b : ${businesses}"
+                                th:value="${b.business.id}"
+                                th:text="${b.business.name}">
+                        </option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">
+                    Ingresar
+                </button>
+            </form>
+        </div>
+
+        <div class="col-12 col-md-2 col-lg-4"></div>
+    </div>
+</div>
+<script
+        th:src="@{/assets/vendor/bootstrap/js/bootstrap.bundle.min.js}">
+</script>
+</body>
+</html>

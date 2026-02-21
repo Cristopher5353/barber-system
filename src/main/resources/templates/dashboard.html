@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>CJA Barber</title>
+  <th:block th:include="fragments/fragmentcss.html"></th:block>
+</head>
+
+<body id="body">
+  <!---------- Header ----------->
+  <header th:replace="fragments/header :: header"></header>
+  <!---------- End Header ----------->
+
+  <!---------- Sidebar ----------->
+  <aside th:replace="fragments/aside :: aside"></aside>
+  <!---------- End Sidebar ----------->
+
+  <!---------- Main ----------->
+  <main id="main" class="main">
+    <div class="pagetitle">
+      <h1>Dashboad</h1>
+      <nav>
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item">
+            <a th:href="@{/dashboard}">CJA Inventory</a>
+          </li>
+        </ol>
+      </nav>
+      <a class="btn btn-primary mb-2" th:href="@{/dashboard/ventas/crear}">Venta +</a>
+      <section class="section dashboard">
+        <div class="row">
+          <div class="col-12 col-md-4">
+            <div class="card info-card sales-card">
+              <div class="card-body">
+                <h5 class="card-title">Ventas <span>| Hoy</span></h5>
+                <div class="d-flex align-items-center">
+                  <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                    <i class="bi bi-cart"></i>
+                  </div>
+                  <div class="ps-3">
+                    <h6 id="totalSalesToday"></h6>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-4">
+            <div class="card info-card sales-card">
+              <div class="card-body">
+                <h5 class="card-title">Servicios <span>| Hoy</span></h5>
+                <div class="d-flex align-items-center">
+                  <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                    <i class="bi bi-people"></i>
+                  </div>
+                  <div class="ps-3">
+                    <h6 id="servicesToday"></h6>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-4">
+            <div class="card info-card sales-card">
+              <div class="card-body">
+                <h5 class="card-title">Clientes <span>| Hoy</span></h5>
+                <div class="d-flex align-items-center">
+                  <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                    <i class="bi bi-bag-check"></i>
+                  </div>
+                  <div class="ps-3">
+                    <h6 id="customersToday"></h6>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row" sec:authorize="hasRole('OWNER')">
+          <div class="col-12 col-md-6">
+            <div class="card info-card sales-card">
+              <div class="card-body">
+                <h5 class="card-title">Ventas últimos 7 días</h5>
+                <canvas id="salesLast7DaysChart"></canvas>
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title">Ranking Barberos | Hoy</h5>
+                <table class="table table-sm">
+                  <thead>
+                  <tr>
+                    <th>Barbero</th>
+                    <th>Servicios</th>
+                    <th>Total</th>
+                  </tr>
+                  </thead>
+                  <tbody id="barberRanking">
+                  <!-- JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row mt-4" sec:authorize="hasRole('OWNER')">
+          <div class="col-12">
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title">Resumen de Pagos a Barberos | Hoy</h5>
+                <div class="table-responsive">
+                  <table class="table table-sm table-hover align-middle">
+                    <thead>
+                    <tr>
+                      <th>Barbero</th>
+                      <th>Servicios</th>
+                      <th>Total Ventas</th>
+                      <th>% Comisión</th>
+                      <th>Pago</th>
+                    </tr>
+                    </thead>
+                    <tbody id="barberPaymentSummary">
+                    <!-- Datos dinámicos con JS -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row mt-4" sec:authorize="hasRole('BARBER')">
+          <div class="col-12">
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title">Últimas Ventas | Hoy</h5>
+                <div class="table-responsive">
+                  <table class="table table-sm table-hover align-middle">
+                    <thead>
+                    <tr>
+                      <th>Hora</th>
+                      <th>Servicio</th>
+                      <th>Total</th>
+                    </tr>
+                    </thead>
+                    <tbody id="recentSales">
+                    <!-- Datos dinámicos con JS -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+  <!---------- End Main ----------->
+
+  <!-------- Footer -------->
+  <footer th:replace="fragments/footer :: footer"></footer>
+  <!-------- End Footer -------->
+
+  <!-- Vendor JS Files -->
+  <th:block th:include="fragments/fragmentjs.html"></th:block>
+  <!-- End Vendor JS Files -->
+
+  <script>
+    $.ajax({
+      url: '/dashboard/summary',
+      type: 'GET',
+      success: function (data) {
+        console.log(data);
+        $('#totalSalesToday').text('S/ ' + data.totalSales);
+        $('#servicesToday').text(data.services);
+        $('#customersToday').text(data.customers);
+      },
+      error: function (err) {
+        console.error(err);
+      }
+    });
+
+    $.ajax({
+      url: '/dashboard/owner',
+      type: 'GET',
+      success: function (data) {
+        console.log(data)
+
+        const labels = data.salesLast7DaysChart.map(e => {
+          const date = new Date(e.date);
+          return date.toLocaleDateString('es-ES', { weekday: 'long' });
+        });
+        const totals = data.salesLast7DaysChart.map(e => e.total);
+
+        new Chart(document.getElementById('salesLast7DaysChart'), {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Ventas',
+              data: totals,
+              borderWidth: 2
+            }]
+          }
+        });
+
+        data.barberRanking.forEach(b => {
+          $('#barberRanking').append(`
+            <tr>
+              <td>${b.barberName}</td>
+              <td>${b.servicesCount}</td>
+              <td>S/ ${b.totalAmount}</td>
+            </tr>
+          `);
+        });
+
+        data.barberPaymentSummary.forEach(b => {
+          $('#barberPaymentSummary').append(`
+            <tr>
+              <td>${b.barberName}</td>
+              <td>${b.servicesCount}</td>
+              <td>S/ ${b.totalAmount}</td>
+              <td>${b.commissionPercentage}</td>
+              <td>S/ ${b.commissionAmount}</td>
+            </tr>
+          `);
+        });
+      }
+    });
+
+    $.ajax({
+      url: '/dashboard/barber',
+      type: 'GET',
+      success: function (data) {
+        console.log(data);
+        data.recentSales.forEach(sale => {
+          $('#recentSales').append(`
+            <tr>
+              <td>
+                ${new Date(sale.saleDate).toLocaleTimeString('en-US', {
+                  hour: 'numeric',
+                  minute: '2-digit',
+                  hour12: true
+                })}
+              </td>
+              <td>${sale.itemName}</td>
+              <td>S/ ${sale.subtotal}</td>
+            </tr>
+          `);
+        });
+      }
+    });
+  </script>
+</body>
+
+</html>
