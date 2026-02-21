@@ -212,8 +212,9 @@
 
           if (res.ok) {
             alert('Venta registrada');
-            cart = [];
-            renderCart();
+            //cart = [];
+            //renderCart();
+            window.location.href = '/dashboard';
           } else {
             alert('Error al registrar venta');
           }

@@ -29,7 +29,7 @@
           </li>
         </ol>
       </nav>
-      <a class="btn btn-primary mb-2" th:href="@{/dashboard/ventas/crear}">Venta +</a>
+      <a class="btn btn-primary mb-2" th:href="@{/dashboard/ventas/crear}" sec:authorize="hasRole('BARBER')">Venta +</a>
       <section class="section dashboard">
         <div class="row">
           <div class="col-12 col-md-4">
